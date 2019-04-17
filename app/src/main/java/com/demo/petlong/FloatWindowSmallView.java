@@ -2,6 +2,8 @@ package com.demo.petlong;
 
 import java.lang.reflect.Field;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
@@ -10,9 +12,13 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class FloatWindowSmallView extends LinearLayout {
+import de.hdodenhof.circleimageview.CircleImageView;
+
+public class FloatWindowSmallView extends LinearLayout implements View.OnClickListener{
 
 	/**
 	 * 记录小悬浮窗的宽度
@@ -37,7 +43,7 @@ public class FloatWindowSmallView extends LinearLayout {
 	/**
 	 * 小悬浮窗的布局
 	 */
-	private LinearLayout smallWindowLayout;
+	private RelativeLayout smallWindowLayout;
 
 	/**
 	 * 小火箭控件
@@ -94,19 +100,31 @@ public class FloatWindowSmallView extends LinearLayout {
 	 */
 	private boolean isPressed;
 
+	private CircleImageView addButton;
+	private CircleImageView takePhoto;
+	private CircleImageView openAlbum;
+
+	private boolean start = true;
+
 	public FloatWindowSmallView(Context context) {
 		super(context);
 		windowManager = (WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE);
 		LayoutInflater.from(context).inflate(R.layout.float_window_small, this);
-		smallWindowLayout = (LinearLayout) findViewById(R.id.small_window_layout);
+		smallWindowLayout = (RelativeLayout) findViewById(R.id.small_window_layout);
 		windowViewWidth = smallWindowLayout.getLayoutParams().width;
 		windowViewHeight = smallWindowLayout.getLayoutParams().height;
 		rocketImg = (ImageView) findViewById(R.id.rocket_img);
 		rocketWidth = rocketImg.getLayoutParams().width;
 		rocketHeight = rocketImg.getLayoutParams().height;
-		TextView percentView = (TextView) findViewById(R.id.percent);
-		percentView.setText(MyWindowManager.getUsedPercentValue(context));
+		addButton = (CircleImageView) findViewById(R.id.icon_add);
+		takePhoto = (CircleImageView) findViewById(R.id.icon_take_photo);
+		openAlbum = (CircleImageView) findViewById(R.id.icon_album);
+//		addButton.setOnClickListener(this);
+		takePhoto.setOnClickListener(this);
+		openAlbum.setOnClickListener(this);
+
+
 	}
 
 	@Override
@@ -126,8 +144,8 @@ public class FloatWindowSmallView extends LinearLayout {
 			xInScreen = event.getRawX();
 			yInScreen = event.getRawY() - getStatusBarHeight();
 			// 手指移动的时候更新小悬浮窗的状态和位置
-			updateViewStatus();
 			updateViewPosition();
+			updateViewStatus();
 			break;
 		case MotionEvent.ACTION_UP:
 			isPressed = false;
@@ -137,7 +155,21 @@ public class FloatWindowSmallView extends LinearLayout {
 				updateViewStatus();
 				// 如果手指离开屏幕时，xDownInScreen和xInScreen相等，且yDownInScreen和yInScreen相等，则视为触发了单击事件。
 				if (xDownInScreen == xInScreen && yDownInScreen == yInScreen) {
-					openBigWindow();
+					if (start) {
+						takePhoto.setVisibility(VISIBLE);
+						openAlbum.setVisibility(VISIBLE);
+						open();
+					} else {
+						close();
+						postDelayed(new Runnable() {
+							@Override
+							public void run() {
+								takePhoto.setVisibility(INVISIBLE);
+								openAlbum.setVisibility(INVISIBLE);
+							}
+						}, 500);
+
+					}
 				}
 			}
 			break;
@@ -169,7 +201,7 @@ public class FloatWindowSmallView extends LinearLayout {
 	 * 更新小悬浮窗在屏幕中的位置。
 	 */
 	private void updateViewPosition() {
-		mParams.x = (int) (xInScreen - xInView);
+		mParams.x = (int) (xInScreen - xInView) + 300;
 		mParams.y = (int) (yInScreen - yInView);
 		windowManager.updateViewLayout(this, mParams);
 		MyWindowManager.updateLauncher();
@@ -195,6 +227,43 @@ public class FloatWindowSmallView extends LinearLayout {
 			MyWindowManager.removeLauncher(getContext());
 		}
 	}
+
+	//展开工具栏
+	private void open() {
+		start = false;
+		ObjectAnimator translationLeft = new ObjectAnimator().ofFloat(takePhoto, "translationX", 0, -220f);
+		translationLeft.setDuration(500);
+		translationLeft.start();
+		ObjectAnimator translationRight = new ObjectAnimator().ofFloat(openAlbum, "translationX", 0, 220f);
+		translationRight.setDuration(500);
+		translationRight.start();
+		ObjectAnimator re = ObjectAnimator.ofFloat(addButton, "rotation", 0f, 90f);
+		AnimatorSet animatorSetsuofang = new AnimatorSet();//组合动画
+		ObjectAnimator scaleX = ObjectAnimator.ofFloat(addButton, "scaleX", 1, 0.8f);
+		ObjectAnimator scaleY = ObjectAnimator.ofFloat(addButton, "scaleY", 1, 0.8f);
+		animatorSetsuofang.setDuration(500);
+		animatorSetsuofang.play(scaleX).with(scaleY).with(re);
+		animatorSetsuofang.start();
+	}
+
+	//合上工具栏
+	private void close() {
+		start = true;
+		ObjectAnimator translationLeft = new ObjectAnimator().ofFloat(takePhoto, "translationX", -220, 0f);
+		translationLeft.setDuration(500);
+		translationLeft.start();
+		ObjectAnimator translationRight = new ObjectAnimator().ofFloat(openAlbum, "translationX", 220, 0f);
+		translationRight.setDuration(500);
+		translationRight.start();
+		ObjectAnimator re = ObjectAnimator.ofFloat(addButton, "rotation", 90f, 0f);
+		AnimatorSet animatorSetsuofang = new AnimatorSet();//组合动画
+		ObjectAnimator scaleX = ObjectAnimator.ofFloat(addButton, "scaleX", 0.8f, 1f);
+		ObjectAnimator scaleY = ObjectAnimator.ofFloat(addButton, "scaleY", 0.8f, 1f);
+		animatorSetsuofang.setDuration(500);
+		animatorSetsuofang.play(scaleX).with(scaleY).with(re);
+		animatorSetsuofang.start();
+	}
+
 
 	/**
 	 * 打开大悬浮窗，同时关闭小悬浮窗。
@@ -222,6 +291,18 @@ public class FloatWindowSmallView extends LinearLayout {
 			}
 		}
 		return statusBarHeight;
+	}
+
+	@Override
+	public void onClick(View view) {
+		switch (view.getId()) {
+			case R.id.icon_album:
+				Toast.makeText(getContext(),"hjaghj",Toast.LENGTH_SHORT).show();
+				break;
+			case R.id.icon_take_photo:
+				Toast.makeText(getContext(),"dsadasd",Toast.LENGTH_SHORT).show();
+				break;
+		}
 	}
 
 	/**

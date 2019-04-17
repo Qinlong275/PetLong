@@ -55,7 +55,7 @@ public class Person extends View {
 	/**
 	 * 动画大小比例
 	 */
-	protected float personSize = 1f;
+	protected float personSize = 2.5f;
 	/**
 	 * 公共矩阵
 	 */

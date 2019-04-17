@@ -183,9 +183,9 @@ public class MyWindowManager {
 	 */
 	public static void updateUsedPercent(Context context) {
 		if (smallWindow != null) {
-			TextView percentView = (TextView) smallWindow
-					.findViewById(R.id.percent);
-			percentView.setText(getUsedPercentValue(context));
+//			TextView percentView = (TextView) smallWindow
+//					.findViewById(R.id.percent);
+//			percentView.setText(getUsedPercentValue(context));
 		}
 	}
 
@@ -204,6 +204,7 @@ public class MyWindowManager {
 	 * @return 当火箭被发到发射台上返回true，否则返回false。
 	 */
 	public static boolean isReadyToLaunch() {
+		if (smallWindowParams == null || launcherParams == null) return false;
 		if ((smallWindowParams.x > launcherParams.x && smallWindowParams.x
 				+ smallWindowParams.width < launcherParams.x
 				+ launcherParams.width)

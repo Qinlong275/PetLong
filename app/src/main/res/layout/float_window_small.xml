@@ -1,21 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:id="@+id/small_window_layout"
-        android:layout_width="60dp"
-        android:layout_height="25dp"
-        android:background="@drawable/bg_small" >
-
-        <TextView
-            android:id="@+id/percent"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textColor="#ffffff" />
-    </LinearLayout>
     
     <ImageView 
         android:id="@+id/rocket_img"
@@ -23,6 +10,38 @@
         android:layout_height="90dp"
         android:src="@drawable/rocket"
         android:visibility="gone"
+        android:layout_centerInParent="true"
         />
 
-</FrameLayout>
+    <RelativeLayout
+        android:id="@+id/small_window_layout"
+        android:layout_centerInParent="true"
+        android:layout_width="300dp"
+        android:layout_height="80dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/icon_take_photo"
+            android:layout_width="57dp"
+            android:layout_height="57dp"
+            android:layout_centerInParent="true"
+            android:visibility="invisible"
+            android:src="@drawable/btn_add_camera"/>
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/icon_album"
+            android:layout_width="57dp"
+            android:layout_height="57dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/btn_add_album"
+            android:visibility="invisible"/>
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/icon_add"
+            android:layout_width="57dp"
+            android:layout_height="57dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/btn_add"/>
+    </RelativeLayout>
+
+
+</RelativeLayout>
