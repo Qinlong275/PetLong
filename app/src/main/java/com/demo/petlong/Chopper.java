@@ -8,6 +8,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -20,7 +21,7 @@ public class Chopper extends Person {
 	/**
 	 * 标识常量
 	 */
-	private final int FLAG_STAND = 0,
+	public static final int FLAG_STAND = 0,
 			FLAG_WALK = 1,
 			FLAG_WALK2 = 2,
 			FLAG_EAT = 3,
@@ -77,13 +78,20 @@ public class Chopper extends Person {
 	public void randomChange() {
 		//如果处于手指拖动状态则不进行变换
 		if (actionFlag != FLAG_UP) {
-			int count = actionGroup.size();
-			int i = (int) (Math.random() * count);
-			if (actionFlag != actionGroup.get(i))//don't action the same
-			{
-				onActionChange(actionGroup.get(i));
-			}
+//			int count = actionGroup.size();
+//			int i = (int) (Math.random() * count);
+//			if (actionFlag != actionGroup.get(i))//don't action the same
+//			{
+//				onActionChange(actionGroup.get(i));
+//			}
+			//每次一个动作完成后都回归到SIT状态
+			onActionChange(FLAG_SIT);
 		}
+	}
+
+	//改变宠物的动画状态
+	public void changeState(int state){
+		onActionChange(state);
 	}
 
 	/**
@@ -191,7 +199,8 @@ public class Chopper extends Person {
 			if (y > disY)
 				y = disY;
 			canvasDraw(canvas, bmpImage[1], matrix, paint);
-			randomChange();
+//			randomChange();
+			onActionChange(FLAG_SIT);
 		}
 		frameFlag++;
 	}
@@ -270,8 +279,10 @@ public class Chopper extends Person {
 		y -= speed * upOrDown;//移动
 		//水平行走
 		actionWalk(canvas, paint);
-		if (frameFlag >= UP_DOWN_STEPS)
-			randomChange();
+		if (frameFlag >= UP_DOWN_STEPS){
+
+		}
+//			randomChange();
 	}
 
 	private void actionEat(Canvas canvas, Paint paint) {

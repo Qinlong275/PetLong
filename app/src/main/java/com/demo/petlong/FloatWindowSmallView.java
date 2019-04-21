@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,6 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.demo.petlong.note.NoteActivity;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -105,9 +108,11 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	private CircleImageView openAlbum;
 
 	private boolean start = true;
+	private MyWindowManager mManager;
 
-	public FloatWindowSmallView(Context context) {
+	public FloatWindowSmallView(Context context, MyWindowManager manager) {
 		super(context);
+		mManager = manager;
 		windowManager = (WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE);
 		LayoutInflater.from(context).inflate(R.layout.float_window_small, this);
@@ -149,7 +154,7 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 			break;
 		case MotionEvent.ACTION_UP:
 			isPressed = false;
-			if (MyWindowManager.isReadyToLaunch()) {
+			if (mManager.isReadyToLaunch()) {
 				launchRocket();
 			} else {
 				updateViewStatus();
@@ -193,7 +198,7 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	 * 用于发射小火箭。
 	 */
 	private void launchRocket() {
-		MyWindowManager.removeLauncher(getContext());
+		mManager.removeLauncher(getContext());
 		new LaunchTask().execute();
 	}
 
@@ -204,7 +209,7 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 		mParams.x = (int) (xInScreen - xInView) + 300;
 		mParams.y = (int) (yInScreen - yInView);
 		windowManager.updateViewLayout(this, mParams);
-		MyWindowManager.updateLauncher();
+		mManager.updateLauncher();
 	}
 
 	/**
@@ -217,14 +222,14 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 			windowManager.updateViewLayout(this, mParams);
 			smallWindowLayout.setVisibility(View.GONE);
 			rocketImg.setVisibility(View.VISIBLE);
-			MyWindowManager.createLauncher(getContext());
+			mManager.createLauncher(getContext());
 		} else if (!isPressed) {
 			mParams.width = windowViewWidth;
 			mParams.height = windowViewHeight;
 			windowManager.updateViewLayout(this, mParams);
 			smallWindowLayout.setVisibility(View.VISIBLE);
 			rocketImg.setVisibility(View.GONE);
-			MyWindowManager.removeLauncher(getContext());
+			mManager.removeLauncher(getContext());
 		}
 	}
 
@@ -269,8 +274,8 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	 * 打开大悬浮窗，同时关闭小悬浮窗。
 	 */
 	private void openBigWindow() {
-		MyWindowManager.createBigWindow(getContext());
-		MyWindowManager.removeSmallWindow(getContext());
+		mManager.createBigWindow(getContext());
+		mManager.removeSmallWindow(getContext());
 	}
 
 	/**
@@ -297,10 +302,12 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	public void onClick(View view) {
 		switch (view.getId()) {
 			case R.id.icon_album:
-				Toast.makeText(getContext(),"hjaghj",Toast.LENGTH_SHORT).show();
+				mManager.changePersonState(Chopper.FLAG_SHOCK);
+				Intent intent = new Intent(getContext(), NoteActivity.class);
+				getContext().startActivity(intent);
 				break;
 			case R.id.icon_take_photo:
-				Toast.makeText(getContext(),"dsadasd",Toast.LENGTH_SHORT).show();
+				mManager.changePersonState(Chopper.FLAG_SLEEP);
 				break;
 		}
 	}

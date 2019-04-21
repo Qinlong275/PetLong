@@ -14,6 +14,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
+import android.view.WindowManager;
 
 public class FloatWindowService extends Service {
 
@@ -22,10 +24,15 @@ public class FloatWindowService extends Service {
 	 */
 	private Handler handler = new Handler();
 
+	private MyWindowManager mManager;
+
 	/**
 	 * 定时器，定时进行检测当前应该创建还是移除悬浮窗。
 	 */
 	private Timer timer;
+
+
+
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -34,11 +41,15 @@ public class FloatWindowService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		mManager = new MyWindowManager();
 		// 开启定时器，每隔0.5秒刷新一次
 		if (timer == null) {
 			timer = new Timer();
 			timer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
 		}
+
+		Log.i("qinlong","服务开启");
+
 		return super.onStartCommand(intent, flags, startId);
 	}
 
@@ -46,8 +57,14 @@ public class FloatWindowService extends Service {
 	public void onDestroy() {
 		super.onDestroy();
 		// Service被终止的同时也停止定时器继续运行
-		timer.cancel();
+		if (timer != null){
+			timer.cancel();
+		}
 		timer = null;
+		if (mManager!= null){
+			mManager.removeData(getApplicationContext());
+		}
+
 	}
 
 	class RefreshTask extends TimerTask {
@@ -55,30 +72,33 @@ public class FloatWindowService extends Service {
 		@Override
 		public void run() {
 			// 当前界面是桌面，且没有悬浮窗显示，则创建悬浮窗。
-			if (isHome() && !MyWindowManager.isWindowShowing()) {
+			if (isHome() && !mManager.isWindowShowing()) {
 				handler.post(new Runnable() {
 					@Override
 					public void run() {
-						MyWindowManager.createSmallWindow(getApplicationContext());
+						Log.i("qinlong","创建宠物");
+						mManager.createSmallWindow(getApplicationContext());
+						mManager.createPerson(getApplicationContext());
 					}
 				});
 			}
 			// 当前界面不是桌面，且有悬浮窗显示，则移除悬浮窗。
-			else if (!isHome() && MyWindowManager.isWindowShowing()) {
+			else if (!isHome() && mManager.isWindowShowing()) {
 				handler.post(new Runnable() {
 					@Override
 					public void run() {
-						MyWindowManager.removeSmallWindow(getApplicationContext());
-						MyWindowManager.removeBigWindow(getApplicationContext());
+						mManager.removeSmallWindow(getApplicationContext());
+						mManager.removeBigWindow(getApplicationContext());
+						mManager.removePerson(getApplicationContext());
 					}
 				});
 			}
 			// 当前界面是桌面，且有悬浮窗显示，则更新内存数据。
-			else if (isHome() && MyWindowManager.isWindowShowing()) {
+			else if (isHome() && mManager.isWindowShowing()) {
 				handler.post(new Runnable() {
 					@Override
 					public void run() {
-						MyWindowManager.updateUsedPercent(getApplicationContext());
+						mManager.updateUsedPercent(getApplicationContext());
 					}
 				});
 			}

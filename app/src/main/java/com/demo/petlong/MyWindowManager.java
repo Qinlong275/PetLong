@@ -3,67 +3,99 @@ package com.demo.petlong;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Build;
+import android.os.Handler;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MyWindowManager {
 
 	/**
 	 * 小悬浮窗View的实例
 	 */
-	private static FloatWindowSmallView smallWindow;
+	private FloatWindowSmallView smallWindow;
 
 	/**
 	 * 大悬浮窗View的实例
 	 */
-	private static FloatWindowBigView bigWindow;
+	private FloatWindowBigView bigWindow;
 
 	/**
 	 * 火箭发射台的实例
 	 */
-	private static RocketLauncher rocketLauncher;
+	private RocketLauncher rocketLauncher;
 
 	/**
 	 * 小悬浮窗View的参数
 	 */
-	private static LayoutParams smallWindowParams;
+	private LayoutParams smallWindowParams;
 
 	/**
 	 * 大悬浮窗View的参数
 	 */
-	private static LayoutParams bigWindowParams;
+	private LayoutParams bigWindowParams;
 
 	/**
 	 * 火箭发射台的参数
 	 */
-	private static LayoutParams launcherParams;
+	private LayoutParams launcherParams;
 
 	/**
 	 * 用于控制在屏幕上添加或移除悬浮窗
 	 */
-	private static WindowManager mWindowManager;
+	private WindowManager mWindowManager;
 
 	/**
 	 * 用于获取手机可用内存
 	 */
-	private static ActivityManager mActivityManager;
+	private ActivityManager mActivityManager;
+
+
+	//以下为宠物Person部分
+	/**
+	 * 悬浮窗界面的显示
+	 */
+	public WindowManager.LayoutParams layoutParams;
+	/**
+	 * 线程的使用
+	 */
+	private Handler handler = new Handler();
+	private DrawRunnable drawRunnable = new DrawRunnable();
+	private ChangRunnable changRunnable = new ChangRunnable();
+
+	/**
+	 * 人物类
+	 */
+	private Chopper person;
+	/**
+	 * 每帧运行时间,默认150
+	 */
+	private int frameTime;
+	/**
+	 * 随机动画改变时间,默认5秒
+	 */
+	private int randomTime;
 
 	/**
 	 * 创建一个小悬浮窗。初始位置为屏幕的右部中间位置。
 	 */
-	public static void createSmallWindow(Context context) {
+	public void createSmallWindow(Context context) {
 		WindowManager windowManager = getWindowManager(context);
 		int screenWidth = windowManager.getDefaultDisplay().getWidth();
 		int screenHeight = windowManager.getDefaultDisplay().getHeight();
 		if (smallWindow == null) {
-			smallWindow = new FloatWindowSmallView(context);
+			smallWindow = new FloatWindowSmallView(context, this);
 			if (smallWindowParams == null) {
 				smallWindowParams = new LayoutParams();
 				if (Build.VERSION.SDK_INT >= 25) {
@@ -88,7 +120,7 @@ public class MyWindowManager {
 	/**
 	 * 将小悬浮窗从屏幕上移除。
 	 */
-	public static void removeSmallWindow(Context context) {
+	public void removeSmallWindow(Context context) {
 		if (smallWindow != null) {
 			WindowManager windowManager = getWindowManager(context);
 			windowManager.removeView(smallWindow);
@@ -99,12 +131,12 @@ public class MyWindowManager {
 	/**
 	 * 创建一个大悬浮窗。位置为屏幕正中间。
 	 */
-	public static void createBigWindow(Context context) {
+	public void createBigWindow(Context context) {
 		WindowManager windowManager = getWindowManager(context);
 		int screenWidth = windowManager.getDefaultDisplay().getWidth();
 		int screenHeight = windowManager.getDefaultDisplay().getHeight();
 		if (bigWindow == null) {
-			bigWindow = new FloatWindowBigView(context);
+			bigWindow = new FloatWindowBigView(context, this);
 			if (bigWindowParams == null) {
 				bigWindowParams = new LayoutParams();
 				bigWindowParams.x = screenWidth / 2
@@ -124,7 +156,7 @@ public class MyWindowManager {
 	/**
 	 * 将大悬浮窗从屏幕上移除。
 	 */
-	public static void removeBigWindow(Context context) {
+	public void removeBigWindow(Context context) {
 		if (bigWindow != null) {
 			WindowManager windowManager = getWindowManager(context);
 			windowManager.removeView(bigWindow);
@@ -135,7 +167,7 @@ public class MyWindowManager {
 	/**
 	 * 创建一个火箭发射台，位置为屏幕底部。
 	 */
-	public static void createLauncher(Context context) {
+	public void createLauncher(Context context) {
 		WindowManager windowManager = getWindowManager(context);
 		int screenWidth = windowManager.getDefaultDisplay().getWidth();
 		int screenHeight = windowManager.getDefaultDisplay().getHeight();
@@ -158,7 +190,7 @@ public class MyWindowManager {
 	/**
 	 * 将火箭发射台从屏幕上移除。
 	 */
-	public static void removeLauncher(Context context) {
+	public void removeLauncher(Context context) {
 		if (rocketLauncher != null) {
 			WindowManager windowManager = getWindowManager(context);
 			windowManager.removeView(rocketLauncher);
@@ -169,19 +201,128 @@ public class MyWindowManager {
 	/**
 	 * 更新火箭发射台的显示状态。
 	 */
-	public static void updateLauncher() {
+	public void updateLauncher() {
 		if (rocketLauncher != null) {
 			rocketLauncher.updateLauncherStatus(isReadyToLaunch());
 		}
 	}
 
+
+	/**
+	 * 创建一个卡通人物
+	 */
+	public void createPerson(Context context) {
+		layoutParams = new LayoutParams();
+		WindowManager windowManager = getWindowManager(context);
+		//参数设置
+		if (Build.VERSION.SDK_INT >= 25) {
+			layoutParams.type = LayoutParams.TYPE_APPLICATION_OVERLAY;
+		} else {
+			layoutParams.type = LayoutParams.TYPE_SYSTEM_ALERT;
+		}
+		layoutParams.format = PixelFormat.RGBA_8888;//图片格式，背景透明
+		layoutParams.flags = LayoutParams.FLAG_NOT_TOUCH_MODAL | LayoutParams.FLAG_NOT_FOCUSABLE;
+		layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
+		try {
+			person = new Chopper(context);
+			//参数设置
+			layoutParams.x = (int) person.getX();
+			layoutParams.y = (int) person.getY();
+			layoutParams.width = person.getBmpW();//设置大小
+			layoutParams.height = person.getBmpH();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//显示
+		Log.i("qinlong","show pet");
+		windowManager.addView(person, layoutParams);
+		handler.post(drawRunnable);
+		//让宠物自己随机变换动画
+		handler.post(changRunnable);
+		frameTime = 150;
+		randomTime = 5000;
+	}
+
+
+	/**
+	 * 将卡通人物从屏幕上移除。
+	 */
+	public void removePerson(Context context) {
+		if (person != null) {
+			WindowManager windowManager = getWindowManager(context);
+			windowManager.removeView(person);
+			person = null;
+		}
+	}
+
+	/**
+	 * 改变卡通人物的动画
+	 */
+	public void changePersonState(int state) {
+		person.changeState(state);
+	}
+
+
+	/**
+	 * 图像绘制，悬浮窗位置变化
+	 */
+	class DrawRunnable implements Runnable {
+		@Override
+		public void run() {
+//			System.out.println("PET_LOG: DrawRunnable running");
+			long start = System.currentTimeMillis();
+			try {
+				person.invalidate();    //进行重绘，调用person的onDraw
+				layoutParams.x = (int) person.getX();
+				layoutParams.y = (int) person.getY();
+				mWindowManager.updateViewLayout(person, layoutParams);
+//                //长按启动
+//                if(person.getOnPerson() == 1 && System.currentTimeMillis()-person.getTouchDownTime() > 1000){
+//                    ActivityManager mActivityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+//                    List<RunningTaskInfo> rti = mActivityManager.getRunningTasks(1);
+//                    if(!rti.get(0).topActivity.getPackageName().equals("akai.floatView.op.luffy")){
+//                        Intent intent = new Intent(AppService.this, MainSettings.class);
+//                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                        startActivity(intent);
+//                    }
+//                    person.setOnPerson(0);
+//                }
+				long end = System.currentTimeMillis();
+				if (end - start < frameTime) {
+					handler.postDelayed(this, frameTime - (end - start));
+				} else {
+					handler.post(this);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 动画之间变换
+	 */
+	class ChangRunnable implements Runnable {
+		@Override
+		public void run() {
+			try {
+				person.randomChange();
+				handler.postDelayed(this, randomTime);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+
 	/**
 	 * 更新小悬浮窗的TextView上的数据，显示内存使用的百分比。
-	 * 
-	 * @param context
-	 *            可传入应用程序上下文。
+	 *
+	 * @param context 可传入应用程序上下文。
 	 */
-	public static void updateUsedPercent(Context context) {
+	public void updateUsedPercent(Context context) {
 		if (smallWindow != null) {
 //			TextView percentView = (TextView) smallWindow
 //					.findViewById(R.id.percent);
@@ -191,19 +332,19 @@ public class MyWindowManager {
 
 	/**
 	 * 是否有悬浮窗(包括小悬浮窗和大悬浮窗)显示在屏幕上。
-	 * 
+	 *
 	 * @return 有悬浮窗显示在桌面上返回true，没有的话返回false。
 	 */
-	public static boolean isWindowShowing() {
+	public boolean isWindowShowing() {
 		return smallWindow != null || bigWindow != null;
 	}
 
 	/**
 	 * 判断小火箭是否准备好发射了。
-	 * 
+	 *
 	 * @return 当火箭被发到发射台上返回true，否则返回false。
 	 */
-	public static boolean isReadyToLaunch() {
+	public boolean isReadyToLaunch() {
 		if (smallWindowParams == null || launcherParams == null) return false;
 		if ((smallWindowParams.x > launcherParams.x && smallWindowParams.x
 				+ smallWindowParams.width < launcherParams.x
@@ -216,12 +357,11 @@ public class MyWindowManager {
 
 	/**
 	 * 如果WindowManager还未创建，则创建一个新的WindowManager返回。否则返回当前已创建的WindowManager。
-	 * 
-	 * @param context
-	 *            必须为应用程序的Context.
+	 *
+	 * @param context 必须为应用程序的Context.
 	 * @return WindowManager的实例，用于控制在屏幕上添加或移除悬浮窗。
 	 */
-	private static WindowManager getWindowManager(Context context) {
+	private WindowManager getWindowManager(Context context) {
 		if (mWindowManager == null) {
 			mWindowManager = (WindowManager) context
 					.getSystemService(Context.WINDOW_SERVICE);
@@ -231,12 +371,11 @@ public class MyWindowManager {
 
 	/**
 	 * 如果ActivityManager还未创建，则创建一个新的ActivityManager返回。否则返回当前已创建的ActivityManager。
-	 * 
-	 * @param context
-	 *            可传入应用程序上下文。
+	 *
+	 * @param context 可传入应用程序上下文。
 	 * @return ActivityManager的实例，用于获取手机可用内存。
 	 */
-	private static ActivityManager getActivityManager(Context context) {
+	private ActivityManager getActivityManager(Context context) {
 		if (mActivityManager == null) {
 			mActivityManager = (ActivityManager) context
 					.getSystemService(Context.ACTIVITY_SERVICE);
@@ -246,12 +385,11 @@ public class MyWindowManager {
 
 	/**
 	 * 计算已使用内存的百分比，并返回。
-	 * 
-	 * @param context
-	 *            可传入应用程序上下文。
+	 *
+	 * @param context 可传入应用程序上下文。
 	 * @return 已使用内存的百分比，以字符串形式返回。
 	 */
-	public static String getUsedPercentValue(Context context) {
+	public String getUsedPercentValue(Context context) {
 		String dir = "/proc/meminfo";
 		try {
 			FileReader fr = new FileReader(dir);
@@ -274,15 +412,22 @@ public class MyWindowManager {
 
 	/**
 	 * 获取当前可用内存，返回数据以字节为单位。
-	 * 
-	 * @param context
-	 *            可传入应用程序上下文。
+	 *
+	 * @param context 可传入应用程序上下文。
 	 * @return 当前可用内存。
 	 */
-	private static long getAvailableMemory(Context context) {
+	private long getAvailableMemory(Context context) {
 		ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
 		getActivityManager(context).getMemoryInfo(mi);
 		return mi.availMem;
 	}
 
+	public void removeData(Context context){
+		removeBigWindow(context);
+		removeLauncher(context);
+		removePerson(context);
+		removeSmallWindow(context);
+		handler.removeCallbacks(drawRunnable);
+		handler.removeCallbacks(changRunnable);
+	}
 }

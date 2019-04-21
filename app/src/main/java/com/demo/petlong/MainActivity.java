@@ -44,8 +44,6 @@ public class MainActivity extends Activity {
 					}
 				}
 
-				Intent pet = new Intent(MainActivity.this, AppService.class);
-				startService(pet);
 				Intent intent = new Intent(MainActivity.this, FloatWindowService.class);
 				startService(intent);
 				finish();
