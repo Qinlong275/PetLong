@@ -308,6 +308,8 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 				break;
 			case R.id.icon_take_photo:
 				mManager.changePersonState(Chopper.FLAG_SLEEP);
+				Intent clockIntent = new Intent(getContext(), ClockActivity.class);
+				getContext().startActivity(clockIntent);
 				break;
 		}
 	}

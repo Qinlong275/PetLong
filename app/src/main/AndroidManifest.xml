@@ -22,17 +22,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".note.NoteActivity">
+        <activity android:name=".note.NoteActivity">
         </activity>
-
-        <activity
-            android:name=".note.SelectAct">
+        <activity android:name=".note.SelectAct">
         </activity>
-
-        <activity
-            android:name=".note.AddContent">
+        <activity android:name=".note.AddContent">
         </activity>
 
         <service android:name=".FloatWindowService"/>
@@ -56,6 +50,8 @@
         </receiver>
          
         <activity android:name=".Main2Activity">
+        </activity>
+        <activity android:name=".ClockActivity">
         </activity>
     </application>
 

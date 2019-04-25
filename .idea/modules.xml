@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/PetLong.iml" filepath="$PROJECT_DIR$/PetLong.iml" />
+      <module fileurl="file://$PROJECT_DIR$/alarmmanagerclock/alarmmanagerclock.iml" filepath="$PROJECT_DIR$/alarmmanagerclock/alarmmanagerclock.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
