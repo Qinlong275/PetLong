@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/PetLong.iml" filepath="$PROJECT_DIR$/PetLong.iml" />
       <module fileurl="file://$PROJECT_DIR$/alarmmanagerclock/alarmmanagerclock.iml" filepath="$PROJECT_DIR$/alarmmanagerclock/alarmmanagerclock.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/voice/voice.iml" filepath="$PROJECT_DIR$/voice/voice.iml" />
     </modules>
   </component>
 </project>

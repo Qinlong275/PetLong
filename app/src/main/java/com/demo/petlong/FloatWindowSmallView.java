@@ -14,10 +14,8 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.demo.petlong.note.NoteActivity;
+import com.jju.howe.howeassistant.activity.TopActivity;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -303,7 +301,7 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 		switch (view.getId()) {
 			case R.id.icon_album:
 				mManager.changePersonState(Chopper.FLAG_SHOCK);
-				Intent intent = new Intent(getContext(), NoteActivity.class);
+				Intent intent = new Intent(getContext(), TopActivity.class);
 				getContext().startActivity(intent);
 				break;
 			case R.id.icon_take_photo:
