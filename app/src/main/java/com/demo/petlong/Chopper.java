@@ -1,6 +1,7 @@
 package com.demo.petlong;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -38,8 +39,16 @@ public class Chopper extends Person {
 	 */
 	private final int UP_DOWN_STEPS = 20;
 
+	private SharedPreferences mPreferences;
+	private SharedPreferences.Editor mEditor;
+	private int mPetLevel;
+	private int mLevelSmall;
+
 	public Chopper(Context context) {
 		super(context);
+		mPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
+		mEditor = mPreferences.edit();
+		mPetLevel = mPreferences.getInt("petlevel", 1);
 		paint = new Paint();
 		paint.setColor(Color.WHITE);
 		paint.setStrokeWidth(20);
@@ -78,14 +87,12 @@ public class Chopper extends Person {
 	public void randomChange() {
 		//如果处于手指拖动状态则不进行变换
 		if (actionFlag != FLAG_UP) {
-//			int count = actionGroup.size();
-//			int i = (int) (Math.random() * count);
-//			if (actionFlag != actionGroup.get(i))//don't action the same
-//			{
-//				onActionChange(actionGroup.get(i));
-//			}
-			//每次一个动作完成后都回归到SIT状态
-			onActionChange(FLAG_SIT);
+			int count = actionGroup.size();
+			int i = (int) (Math.random() * count);
+			if (actionFlag != actionGroup.get(i))//don't action the same
+			{
+				onActionChange(actionGroup.get(i));
+			}
 		}
 	}
 
@@ -179,9 +186,24 @@ public class Chopper extends Person {
 				actionStar(canvas, paint);
 				break;
 		}
+		drawLevel(canvas, paint);
 		if (drawTimeNow)
 			actionTime(canvas, paint);
 	}
+
+	private void levelUp(int data){
+		Toast.makeText(getContext(),"经验提升："+data,Toast.LENGTH_SHORT).show();
+		mLevelSmall += data;
+		if (mLevelSmall / 10 >0){
+			Toast.makeText(getContext(),"恭喜您的宠物等级提升了一级",Toast.LENGTH_SHORT).show();
+			mPetLevel ++;
+			mEditor.putInt("petlevel",  mPetLevel);
+			mEditor.apply();
+		}
+		mLevelSmall = mLevelSmall%10;
+
+	}
+
 	/*********************动作,action*******************************************/
 	/**
 	 * 动作：下降,down
@@ -402,6 +424,15 @@ public class Chopper extends Person {
 		paint.setShadowLayer(0, 0, 0, 0);//移出阴影的设置
 	}
 
+	//绘制宠物的等级
+	private void drawLevel(Canvas canvas, Paint paint){
+		paint.setTextSize(26f * personSize);
+		paint.setTextAlign(Align.CENTER);
+		paint.setShadowLayer(2, 2, 2, Color.BLUE);
+		canvas.drawText("Level " + mPetLevel, 120, 46, paint);
+		paint.setShadowLayer(0, 0, 0, 0);//移出阴影的设置
+	}
+
 	/**
 	 * 动作变换事件(flag的变化)
 	 */
@@ -434,21 +465,25 @@ public class Chopper extends Person {
 				break;
 			case FLAG_WALK2:
 				upOrDown = Math.random() < 0.5 ? 1 : -1;
+				levelUp(2);
 			case FLAG_WALK:
 				bmpImage[0] = decodeResource(res, R.drawable.chopper_walk_0_1);
 				bmpImage[1] = decodeResource(res, R.drawable.chopper_walk_1_1);
 				bmpImage[2] = decodeResource(res, R.drawable.chopper_walk_2_1);
+				levelUp(1);
 				break;
 			case FLAG_EAT:
 				bmpImage[0] = decodeResource(res, R.drawable.chopper_eat_1_1);
 				bmpImage[1] = decodeResource(res, R.drawable.chopper_eat_2_1);
 				bmpImage[2] = decodeResource(res, R.drawable.chopper_eat_3_1);
+				levelUp(3);
 				break;
 			case FLAG_BALL:
 				upOrDown = Math.random() < 0.5 ? 1 : Math.random() < 0.5 ? 0 : -1;
 				bmpImage[0] = decodeResource(res, R.drawable.chopper_ball);
 				bmpImage[1] = null;
 				bmpImage[2] = null;
+				levelUp(4);
 				break;
 			case FLAG_SLEEP:
 				bmpImage[0] = decodeResource(res, R.drawable.chopper_sleep_0_1);
@@ -458,6 +493,7 @@ public class Chopper extends Person {
 				bmpTools[2] = decodeResource(res, R.drawable.chopper_sleep_3_1);
 				bmpTools[3] = decodeResource(res, R.drawable.chopper_sleep_3_2);
 				bmpTools[4] = decodeResource(res, R.drawable.chopper_sleep_3_3);
+				levelUp(1);
 				break;
 			case FLAG_HAPPY:
 				bmpImage[0] = decodeResource(res, R.drawable.chopper_happy_0_1);
@@ -466,16 +502,19 @@ public class Chopper extends Person {
 				bmpTools[3] = decodeResource(res, R.drawable.chopper_happy_0_3);
 				bmpTools[4] = decodeResource(res, R.drawable.chopper_happy_1_3);
 				bmpTools[5] = decodeResource(res, R.drawable.chopper_happy_2_3);
+				levelUp(3);
 				break;
 			case FLAG_SHOCK:
 				bmpImage[0] = decodeResource(res, R.drawable.chopper_shock_0_1);
 				bmpImage[1] = decodeResource(res, R.drawable.chopper_shock_1_1);
 				bmpImage[2] = decodeResource(res, R.drawable.chopper_shock_2_1);
+				levelUp(2);
 				break;
 			case FLAG_STAR:
 				bmpImage[0] = decodeResource(res, R.drawable.chopper_star_0_1);
 				bmpImage[1] = decodeResource(res, R.drawable.chopper_star_1_1);
 				bmpImage[2] = null;
+				levelUp(4);
 				break;
 		}
 	}

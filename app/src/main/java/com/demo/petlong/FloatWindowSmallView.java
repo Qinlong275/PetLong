@@ -7,6 +7,7 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.demo.petlong.note.NoteActivity;
 import com.jju.howe.howeassistant.activity.TopActivity;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -101,12 +103,16 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	 */
 	private boolean isPressed;
 
-	private CircleImageView addButton;
-	private CircleImageView takePhoto;
-	private CircleImageView openAlbum;
+	private CircleImageView contrlButton;
+	private CircleImageView voiceBtn;	//智能语音助手
+	private CircleImageView openOperate;
+	private CircleImageView noteBtn;
+	private CircleImageView alarmbtn;
 
 	private boolean start = true;
 	private MyWindowManager mManager;
+
+	private boolean openOperaterWindow = true;
 
 	public FloatWindowSmallView(Context context, MyWindowManager manager) {
 		super(context);
@@ -117,16 +123,20 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 		smallWindowLayout = (RelativeLayout) findViewById(R.id.small_window_layout);
 		windowViewWidth = smallWindowLayout.getLayoutParams().width;
 		windowViewHeight = smallWindowLayout.getLayoutParams().height;
+		Log.i("qinlong 00", "" + windowViewWidth  + windowViewHeight);
 		rocketImg = (ImageView) findViewById(R.id.rocket_img);
 		rocketWidth = rocketImg.getLayoutParams().width;
 		rocketHeight = rocketImg.getLayoutParams().height;
-		addButton = (CircleImageView) findViewById(R.id.icon_add);
-		takePhoto = (CircleImageView) findViewById(R.id.icon_take_photo);
-		openAlbum = (CircleImageView) findViewById(R.id.icon_album);
+		contrlButton = (CircleImageView) findViewById(R.id.icon_contrl);
+		voiceBtn = (CircleImageView) findViewById(R.id.icon_voice);
+		openOperate = (CircleImageView) findViewById(R.id.icon_operate_btn);
+		noteBtn = (CircleImageView) findViewById(R.id.icon_note);
+		alarmbtn = (CircleImageView) findViewById(R.id.icon_alarm);
 //		addButton.setOnClickListener(this);
-		takePhoto.setOnClickListener(this);
-		openAlbum.setOnClickListener(this);
-
+		voiceBtn.setOnClickListener(this);
+		openOperate.setOnClickListener(this);
+		alarmbtn.setOnClickListener(this);
+		noteBtn.setOnClickListener(this);
 
 	}
 
@@ -159,16 +169,20 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 				// 如果手指离开屏幕时，xDownInScreen和xInScreen相等，且yDownInScreen和yInScreen相等，则视为触发了单击事件。
 				if (xDownInScreen == xInScreen && yDownInScreen == yInScreen) {
 					if (start) {
-						takePhoto.setVisibility(VISIBLE);
-						openAlbum.setVisibility(VISIBLE);
+						voiceBtn.setVisibility(VISIBLE);
+						openOperate.setVisibility(VISIBLE);
+						alarmbtn.setVisibility(VISIBLE);
+						noteBtn.setVisibility(VISIBLE);
 						open();
 					} else {
 						close();
 						postDelayed(new Runnable() {
 							@Override
 							public void run() {
-								takePhoto.setVisibility(INVISIBLE);
-								openAlbum.setVisibility(INVISIBLE);
+								voiceBtn.setVisibility(INVISIBLE);
+								openOperate.setVisibility(INVISIBLE);
+								alarmbtn.setVisibility(INVISIBLE);
+								noteBtn.setVisibility(INVISIBLE);
 							}
 						}, 500);
 
@@ -204,7 +218,7 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	 * 更新小悬浮窗在屏幕中的位置。
 	 */
 	private void updateViewPosition() {
-		mParams.x = (int) (xInScreen - xInView) + 300;
+		mParams.x = (int) (xInScreen - xInView) + 280;
 		mParams.y = (int) (yInScreen - yInView);
 		windowManager.updateViewLayout(this, mParams);
 		mManager.updateLauncher();
@@ -224,6 +238,7 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 		} else if (!isPressed) {
 			mParams.width = windowViewWidth;
 			mParams.height = windowViewHeight;
+			Log.i("qinlong 2", "" + windowViewWidth  + windowViewHeight);
 			windowManager.updateViewLayout(this, mParams);
 			smallWindowLayout.setVisibility(View.VISIBLE);
 			rocketImg.setVisibility(View.GONE);
@@ -234,16 +249,22 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	//展开工具栏
 	private void open() {
 		start = false;
-		ObjectAnimator translationLeft = new ObjectAnimator().ofFloat(takePhoto, "translationX", 0, -220f);
+		ObjectAnimator translationLeft = new ObjectAnimator().ofFloat(openOperate, "translationX", 0, -220f);
 		translationLeft.setDuration(500);
 		translationLeft.start();
-		ObjectAnimator translationRight = new ObjectAnimator().ofFloat(openAlbum, "translationX", 0, 220f);
+		ObjectAnimator translationRight = new ObjectAnimator().ofFloat(voiceBtn, "translationX", 0, 220f);
 		translationRight.setDuration(500);
 		translationRight.start();
-		ObjectAnimator re = ObjectAnimator.ofFloat(addButton, "rotation", 0f, 90f);
+		ObjectAnimator translationUp = new ObjectAnimator().ofFloat(alarmbtn, "translationY", 0, -130f);
+		translationUp.setDuration(500);
+		translationUp.start();
+		ObjectAnimator translationDown = new ObjectAnimator().ofFloat(noteBtn, "translationY", 0, 130f);
+		translationDown.setDuration(500);
+		translationDown.start();
+		ObjectAnimator re = ObjectAnimator.ofFloat(contrlButton, "rotation", 0f, 90f);
 		AnimatorSet animatorSetsuofang = new AnimatorSet();//组合动画
-		ObjectAnimator scaleX = ObjectAnimator.ofFloat(addButton, "scaleX", 1, 0.8f);
-		ObjectAnimator scaleY = ObjectAnimator.ofFloat(addButton, "scaleY", 1, 0.8f);
+		ObjectAnimator scaleX = ObjectAnimator.ofFloat(contrlButton, "scaleX", 1, 0.8f);
+		ObjectAnimator scaleY = ObjectAnimator.ofFloat(contrlButton, "scaleY", 1, 0.8f);
 		animatorSetsuofang.setDuration(500);
 		animatorSetsuofang.play(scaleX).with(scaleY).with(re);
 		animatorSetsuofang.start();
@@ -252,28 +273,25 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	//合上工具栏
 	private void close() {
 		start = true;
-		ObjectAnimator translationLeft = new ObjectAnimator().ofFloat(takePhoto, "translationX", -220, 0f);
+		ObjectAnimator translationLeft = new ObjectAnimator().ofFloat(voiceBtn, "translationX", -220, 0f);
 		translationLeft.setDuration(500);
 		translationLeft.start();
-		ObjectAnimator translationRight = new ObjectAnimator().ofFloat(openAlbum, "translationX", 220, 0f);
+		ObjectAnimator translationRight = new ObjectAnimator().ofFloat(openOperate, "translationX", 220, 0f);
 		translationRight.setDuration(500);
 		translationRight.start();
-		ObjectAnimator re = ObjectAnimator.ofFloat(addButton, "rotation", 90f, 0f);
+		ObjectAnimator translationDown = new ObjectAnimator().ofFloat(alarmbtn, "translationY", 130, 0f);
+		translationDown.setDuration(500);
+		translationDown.start();
+		ObjectAnimator translationUp = new ObjectAnimator().ofFloat(noteBtn, "translationY", -130, 0f);
+		translationUp.setDuration(500);
+		translationUp.start();
+		ObjectAnimator re = ObjectAnimator.ofFloat(contrlButton, "rotation", 90f, 0f);
 		AnimatorSet animatorSetsuofang = new AnimatorSet();//组合动画
-		ObjectAnimator scaleX = ObjectAnimator.ofFloat(addButton, "scaleX", 0.8f, 1f);
-		ObjectAnimator scaleY = ObjectAnimator.ofFloat(addButton, "scaleY", 0.8f, 1f);
+		ObjectAnimator scaleX = ObjectAnimator.ofFloat(contrlButton, "scaleX", 0.8f, 1f);
+		ObjectAnimator scaleY = ObjectAnimator.ofFloat(contrlButton, "scaleY", 0.8f, 1f);
 		animatorSetsuofang.setDuration(500);
 		animatorSetsuofang.play(scaleX).with(scaleY).with(re);
 		animatorSetsuofang.start();
-	}
-
-
-	/**
-	 * 打开大悬浮窗，同时关闭小悬浮窗。
-	 */
-	private void openBigWindow() {
-		mManager.createBigWindow(getContext());
-		mManager.removeSmallWindow(getContext());
 	}
 
 	/**
@@ -299,15 +317,27 @@ public class FloatWindowSmallView extends LinearLayout implements View.OnClickLi
 	@Override
 	public void onClick(View view) {
 		switch (view.getId()) {
-			case R.id.icon_album:
-				mManager.changePersonState(Chopper.FLAG_SHOCK);
+			case R.id.icon_voice:
 				Intent intent = new Intent(getContext(), TopActivity.class);
 				getContext().startActivity(intent);
 				break;
-			case R.id.icon_take_photo:
-				mManager.changePersonState(Chopper.FLAG_SLEEP);
-				Intent clockIntent = new Intent(getContext(), ClockActivity.class);
-				getContext().startActivity(clockIntent);
+			case R.id.icon_operate_btn:
+				if (openOperaterWindow){
+					mManager.createOperateWindow(getContext());
+					openOperate.setImageResource(R.drawable.ic_up);
+				}else {
+					mManager.removeOperateWindow(getContext());
+					openOperate.setImageResource(R.drawable.ic_operate);
+				}
+				openOperaterWindow = !openOperaterWindow;
+				break;
+			case R.id.icon_note:
+				Intent intentNote = new Intent(getContext(), NoteActivity.class);
+				getContext().startActivity(intentNote);
+				break;
+			case R.id.icon_alarm:
+				Intent intentClock = new Intent(getContext(), ClockActivity.class);
+				getContext().startActivity(intentClock);
 				break;
 		}
 	}

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/operate_window_layout"
+	android:layout_width="260dp"
+	android:layout_height="125dp"
+	android:background="@drawable/operate_bg"
+	android:orientation="vertical"
+    >
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:id="@+id/icon_happy"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:layout_margin="7dp"
+			android:text="开心"
+			android:textSize="18sp"
+			android:gravity="center"
+			android:background="@drawable/btn_bg"/>
+
+		<TextView
+			android:id="@+id/icon_star"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:layout_margin="7dp"
+			android:text="眨眼"
+			android:textSize="18sp"
+			android:gravity="center"
+			android:background="@drawable/btn_bg"/>
+
+		<TextView
+			android:id="@+id/icon_sleep"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:layout_margin="7dp"
+			android:text="睡觉"
+			android:textSize="18sp"
+			android:gravity="center"
+			android:background="@drawable/btn_bg"/>
+
+		<TextView
+			android:id="@+id/icon_walk2"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:layout_margin="7dp"
+			android:text="游走"
+			android:textSize="18sp"
+			android:gravity="center"
+			android:background="@drawable/btn_bg"/>
+
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:id="@+id/icon_walk"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:layout_margin="7dp"
+			android:text="散步"
+			android:textSize="18sp"
+			android:gravity="center"
+			android:background="@drawable/btn_bg"/>
+
+		<TextView
+			android:id="@+id/icon_eat"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:layout_margin="7dp"
+			android:text="吃饭"
+			android:textSize="18sp"
+			android:gravity="center"
+			android:background="@drawable/btn_bg"/>
+
+		<TextView
+			android:id="@+id/icon_shock"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:layout_margin="7dp"
+			android:text="惊吓"
+			android:textSize="18sp"
+			android:gravity="center"
+			android:background="@drawable/btn_bg"/>
+
+		<TextView
+			android:id="@+id/icon_ball"
+			android:layout_width="50dp"
+			android:layout_height="50dp"
+			android:layout_margin="7dp"
+			android:text="玩耍"
+			android:textSize="18sp"
+			android:gravity="center"
+			android:background="@drawable/btn_bg"/>
+
+
+	</LinearLayout>
+
+</LinearLayout>

@@ -88,7 +88,7 @@ public class FloatWindowService extends Service {
 					@Override
 					public void run() {
 						mManager.removeSmallWindow(getApplicationContext());
-						mManager.removeBigWindow(getApplicationContext());
+						mManager.removeOperateWindow(getApplicationContext());
 						mManager.removePerson(getApplicationContext());
 					}
 				});

@@ -3,12 +3,9 @@ package com.demo.petlong;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 
 import android.app.ActivityManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Handler;
@@ -16,8 +13,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class MyWindowManager {
 
@@ -27,9 +22,9 @@ public class MyWindowManager {
 	private FloatWindowSmallView smallWindow;
 
 	/**
-	 * 大悬浮窗View的实例
+	 * 控制栏浮窗View的实例
 	 */
-	private FloatWindowBigView bigWindow;
+	private OperateWindow mOperateWindow;
 
 	/**
 	 * 火箭发射台的实例
@@ -42,9 +37,9 @@ public class MyWindowManager {
 	private LayoutParams smallWindowParams;
 
 	/**
-	 * 大悬浮窗View的参数
+	 * 底部控制栏View的参数
 	 */
-	private LayoutParams bigWindowParams;
+	private LayoutParams operatorWindowParams;
 
 	/**
 	 * 火箭发射台的参数
@@ -73,6 +68,7 @@ public class MyWindowManager {
 	private Handler handler = new Handler();
 	private DrawRunnable drawRunnable = new DrawRunnable();
 	private ChangRunnable changRunnable = new ChangRunnable();
+	private SitRunnable sitRunnable = new SitRunnable();
 
 	/**
 	 * 人物类
@@ -86,6 +82,8 @@ public class MyWindowManager {
 	 * 随机动画改变时间,默认5秒
 	 */
 	private int randomTime;
+
+	private int fixChangeTime = 5000;
 
 	/**
 	 * 创建一个小悬浮窗。初始位置为屏幕的右部中间位置。
@@ -109,7 +107,7 @@ public class MyWindowManager {
 				smallWindowParams.gravity = Gravity.LEFT | Gravity.TOP;
 				smallWindowParams.width = FloatWindowSmallView.windowViewWidth;
 				smallWindowParams.height = FloatWindowSmallView.windowViewHeight;
-				smallWindowParams.x = screenWidth;
+				smallWindowParams.x = screenWidth / 2;
 				smallWindowParams.y = screenHeight / 2;
 			}
 			smallWindow.setParams(smallWindowParams);
@@ -129,38 +127,38 @@ public class MyWindowManager {
 	}
 
 	/**
-	 * 创建一个大悬浮窗。位置为屏幕正中间。
+	 * 创建底部的操作栏（控制宠物的动画活动）
 	 */
-	public void createBigWindow(Context context) {
+	public void createOperateWindow(Context context) {
 		WindowManager windowManager = getWindowManager(context);
 		int screenWidth = windowManager.getDefaultDisplay().getWidth();
 		int screenHeight = windowManager.getDefaultDisplay().getHeight();
-		if (bigWindow == null) {
-			bigWindow = new FloatWindowBigView(context, this);
-			if (bigWindowParams == null) {
-				bigWindowParams = new LayoutParams();
-				bigWindowParams.x = screenWidth / 2
-						- FloatWindowBigView.viewWidth / 2;
-				bigWindowParams.y = screenHeight / 2
-						- FloatWindowBigView.viewHeight / 2;
-				bigWindowParams.type = LayoutParams.TYPE_APPLICATION_OVERLAY;
-				bigWindowParams.format = PixelFormat.RGBA_8888;
-				bigWindowParams.gravity = Gravity.LEFT | Gravity.TOP;
-				bigWindowParams.width = FloatWindowBigView.viewWidth;
-				bigWindowParams.height = FloatWindowBigView.viewHeight;
+		if (mOperateWindow == null) {
+			mOperateWindow = new OperateWindow(context, this);
+			if (operatorWindowParams == null) {
+				operatorWindowParams = new LayoutParams();
+				operatorWindowParams.x = screenWidth / 2 - OperateWindow.viewWidth / 2;
+				operatorWindowParams.y = screenHeight - OperateWindow.viewHeight*2;
+				operatorWindowParams.type = LayoutParams.TYPE_APPLICATION_OVERLAY;
+				operatorWindowParams.format = PixelFormat.RGBA_8888;
+				operatorWindowParams.gravity = Gravity.LEFT | Gravity.TOP;
+				operatorWindowParams.width = OperateWindow.viewWidth;
+				operatorWindowParams.height = OperateWindow.viewHeight;
+				operatorWindowParams.flags = LayoutParams.FLAG_NOT_TOUCH_MODAL
+						| LayoutParams.FLAG_NOT_FOCUSABLE;
 			}
-			windowManager.addView(bigWindow, bigWindowParams);
+			windowManager.addView(mOperateWindow, operatorWindowParams);
 		}
 	}
 
 	/**
-	 * 将大悬浮窗从屏幕上移除。
+	 * 将操作栏从屏幕上移除。
 	 */
-	public void removeBigWindow(Context context) {
-		if (bigWindow != null) {
+	public void removeOperateWindow(Context context) {
+		if (mOperateWindow != null) {
 			WindowManager windowManager = getWindowManager(context);
-			windowManager.removeView(bigWindow);
-			bigWindow = null;
+			windowManager.removeView(mOperateWindow);
+			mOperateWindow = null;
 		}
 	}
 
@@ -240,8 +238,10 @@ public class MyWindowManager {
 		handler.post(drawRunnable);
 		//让宠物自己随机变换动画
 		handler.post(changRunnable);
+		//每个动作完后都回到坐立状态
+		handler.post(sitRunnable);
 		frameTime = 150;
-		randomTime = 5000;
+		randomTime = 12000;
 	}
 
 
@@ -316,6 +316,22 @@ public class MyWindowManager {
 
 	}
 
+	/**
+	 * 实现每个动作完成后回归到坐立状态
+	 */
+	class SitRunnable implements Runnable {
+		@Override
+		public void run() {
+			try {
+				person.changeState(Chopper.FLAG_SIT);
+				handler.postDelayed(this, fixChangeTime);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
 
 	/**
 	 * 更新小悬浮窗的TextView上的数据，显示内存使用的百分比。
@@ -336,7 +352,7 @@ public class MyWindowManager {
 	 * @return 有悬浮窗显示在桌面上返回true，没有的话返回false。
 	 */
 	public boolean isWindowShowing() {
-		return smallWindow != null || bigWindow != null;
+		return smallWindow != null || mOperateWindow != null || person != null;
 	}
 
 	/**
@@ -423,11 +439,12 @@ public class MyWindowManager {
 	}
 
 	public void removeData(Context context){
-		removeBigWindow(context);
+		removeOperateWindow(context);
 		removeLauncher(context);
 		removePerson(context);
 		removeSmallWindow(context);
 		handler.removeCallbacks(drawRunnable);
 		handler.removeCallbacks(changRunnable);
+		handler.removeCallbacks(sitRunnable);
 	}
 }
